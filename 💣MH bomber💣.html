@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MH BOMBER // SYSTEM CONSOLE</title>
+<style>
+:root{
+  --bg:#000; --g:#00ff66; --g2:#00c94f; --gd:#06331a; --gdim:#0a5a2c; --warn:#ffb000; --red:#ff3b4e;
+  --mono:"Courier New",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--g);font-family:var(--mono);min-height:100%;overflow-x:hidden}
+body{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);animation:flicker 6s infinite}
+#rain{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.45}
+.crt{position:fixed;inset:0;z-index:50;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.28) 3px);}
+.crt::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.65) 100%)}
+.sweep{position:fixed;left:0;right:0;height:120px;z-index:49;pointer-events:none;
+  background:linear-gradient(to bottom,transparent,rgba(0,255,102,.07),transparent);animation:sweep 7s linear infinite}
+@keyframes sweep{from{top:-120px}to{top:100%}}
+@keyframes flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.94}94%{opacity:1}96%{opacity:.97}97%{opacity:1}}
+@keyframes panelIn{from{opacity:0;transform:translateY(18px) scale(.985);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+@keyframes blink{50%{opacity:0}}
+
+.wrap{position:relative;z-index:2;max-width:920px;margin:0 auto;padding:22px 14px 40px;display:flex;flex-direction:column;gap:16px}
+header{text-align:center;padding:10px 0 4px;animation:panelIn .7s both}
+h1{font-size:clamp(34px,10vw,64px);letter-spacing:.14em;font-weight:700;color:var(--g);
+  text-shadow:0 0 6px var(--g),0 0 22px var(--g2),0 0 48px rgba(0,255,102,.45);position:relative;display:inline-block}
+h1::before,h1::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden;opacity:.55}
+h1::before{color:#0ff;transform:translateX(-2px);clip-path:inset(0 0 62% 0);animation:glitch 4.5s infinite steps(1)}
+h1::after{color:#f0f;transform:translateX(2px);clip-path:inset(60% 0 0 0);animation:glitch 4.5s infinite steps(1) reverse}
+@keyframes glitch{0%,90%,100%{transform:translateX(0)}92%{transform:translateX(-4px)}95%{transform:translateX(4px)}}
+.sub{margin-top:6px;font-size:13px;letter-spacing:.5em;color:var(--g2);text-shadow:0 0 8px var(--g2)}
+.sim{margin-top:10px;font-size:11px;color:var(--warn);letter-spacing:.08em;text-shadow:0 0 6px rgba(255,176,0,.5)}
+
+.panel{background:rgba(2,16,8,.82);border:1px solid var(--gdim);border-radius:6px;padding:16px;
+  box-shadow:0 0 0 1px rgba(0,255,102,.08) inset,0 0 26px rgba(0,255,102,.12);backdrop-filter:blur(2px);animation:panelIn .7s both}
+.panel:nth-of-type(1){animation-delay:.15s}.panel:nth-of-type(2){animation-delay:.3s}.panel:nth-of-type(3){animation-delay:.45s}
+.ptitle{display:flex;align-items:center;gap:8px;font-size:13px;letter-spacing:.2em;margin-bottom:14px;color:var(--g);text-shadow:0 0 8px var(--g2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g)}
+.dot.run{animation:blink .5s infinite}
+.dot.stop{background:var(--red);box-shadow:0 0 8px var(--red)}
+.dot.done{background:#00e5ff;box-shadow:0 0 8px #00e5ff}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;letter-spacing:.18em;color:var(--g2)}
+.inwrap{display:flex;align-items:center;background:#000;border:1px solid var(--gdim);border-radius:4px;transition:.2s}
+.inwrap:focus-within{border-color:var(--g);box-shadow:0 0 14px rgba(0,255,102,.45)}
+.inwrap span{padding:0 0 0 12px;color:var(--g2);white-space:nowrap}
+input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--g);font:inherit;font-size:16px;padding:14px 12px;letter-spacing:.1em;text-shadow:0 0 6px rgba(0,255,102,.6)}
+input::placeholder{color:#0b6a33}
+.btns{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:14px}
+button{font:inherit;font-weight:700;letter-spacing:.2em;font-size:16px;min-height:56px;border-radius:4px;cursor:pointer;
+  border:1px solid var(--g);background:rgba(0,255,102,.08);color:var(--g);text-shadow:0 0 8px var(--g);
+  box-shadow:0 0 16px rgba(0,255,102,.3);transition:.18s;-webkit-tap-highlight-color:transparent}
+button:hover:not(:disabled){background:var(--g);color:#000;text-shadow:none;box-shadow:0 0 30px var(--g)}
+button:active:not(:disabled){transform:scale(.97)}
+#stop{border-color:var(--red);color:var(--red);text-shadow:0 0 8px var(--red);background:rgba(255,59,78,.07);box-shadow:0 0 16px rgba(255,59,78,.3)}
+#stop:hover:not(:disabled){background:var(--red);color:#000;box-shadow:0 0 30px var(--red)}
+button:disabled{opacity:.28;cursor:not-allowed;box-shadow:none}
+button:focus-visible,input:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.err{min-height:16px;margin-top:8px;font-size:12px;color:var(--red);text-shadow:0 0 6px var(--red)}
+
+.status{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;letter-spacing:.15em;margin-bottom:10px}
+#state{font-weight:700;padding:3px 10px;border:1px solid currentColor;border-radius:3px}
+.st-idle{color:var(--g2)}.st-run{color:var(--warn)}.st-stop{color:var(--red)}.st-done{color:#00e5ff}
+#term{height:min(46vh,380px);min-height:240px;overflow-y:auto;background:#000;border:1px solid var(--gdim);border-radius:4px;padding:12px;
+  font-size:13px;line-height:1.55;box-shadow:inset 0 0 30px rgba(0,255,102,.08);scrollbar-width:thin;scrollbar-color:var(--gdim) #000}
+#term .l{white-space:pre-wrap;word-break:break-word;text-shadow:0 0 6px rgba(0,255,102,.55)}
+#term .sys{color:#7dffb0}#term .net{color:#00e5ff}#term .eng{color:var(--g)}#term .que{color:#a6ffcb}#term .ok{color:#fff;text-shadow:0 0 10px var(--g)}#term .wrn{color:var(--warn)}#term .stp{color:var(--red)}
+.cursor{display:inline-block;width:9px;height:1em;background:var(--g);vertical-align:-2px;margin-left:2px;box-shadow:0 0 8px var(--g);animation:blink 1s steps(1) infinite}
+
+.prog-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;letter-spacing:.14em;margin-bottom:8px}
+.bar{height:20px;border:1px solid var(--gdim);border-radius:3px;background:#000;overflow:hidden;position:relative}
+#fill{height:100%;width:0;background:repeating-linear-gradient(90deg,var(--g) 0 10px,var(--g2) 10px 12px);box-shadow:0 0 18px var(--g);transition:width .12s linear}
+.bar.run #fill{animation:stripes 1s linear infinite}
+@keyframes stripes{from{filter:brightness(1)}50%{filter:brightness(1.35)}to{filter:brightness(1)}}
+footer{text-align:center;font-size:11px;color:var(--gdim);letter-spacing:.12em}
+
+@media (max-width:560px){.grid{grid-template-columns:1fr}.btns{grid-template-columns:1fr 1fr}.sub{letter-spacing:.3em}.wrap{padding:16px 10px 32px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="rain"></canvas>
+<div class="crt"></div><div class="sweep"></div>
+
+<div class="wrap">
+  <header>
+    <h1 data-t="MH BOMBER">MH BOMBER</h1>
+    <div class="sub">SYSTEM CONSOLE</div>
+    <div class="sim">OFFLINE SIMULATION &mdash; NO SMS IS SENT, NO NETWORK ACTIVITY</div>
+  </header>
+
+  <section class="panel">
+    <div class="ptitle"><span class="dot"></span>TARGET CONFIGURATION</div>
+    <div class="grid">
+      <div class="field">
+        <label for="phone">TARGET NUMBER</label>
+        <div class="inwrap"><span>+98</span><input id="phone" type="tel" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="____________"></div>
+      </div>
+      <div class="field">
+        <label for="count">REQUEST COUNT</label>
+        <div class="inwrap"><input id="count" type="number" inputmode="numeric" min="1" max="500" value="100" placeholder="REQUEST COUNT"></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button id="start">&#9654; START</button>
+      <button id="stop" disabled>&#9632; STOP</button>
+    </div>
+    <div class="err" id="err"></div>
+  </section>
+
+  <section class="panel">
+    <div class="status">
+      <div class="ptitle" style="margin:0"><span class="dot" id="dot"></span>TERMINAL</div>
+      <div>STATUS: <span id="state" class="st-idle">IDLE</span></div>
+    </div>
+    <div id="term" aria-live="polite"><div class="l sys">[SYSTEM] Console ready. Awaiting input<span class="cursor"></span></div></div>
+  </section>
+
+  <section class="panel">
+    <div class="prog-row"><span>PROGRESS <b id="pct">00%</b> &rarr; 100%</span><span>PROCESSED: <b id="done">0</b> / <b id="total">100</b></span></div>
+    <div class="bar" id="bar"><div id="fill"></div></div>
+  </section>
+
+  <footer>MH BOMBER v1.0 // DEMO MODE // CLIENT-SIDE ONLY</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(id){return document.getElementById(id)};
+  var term=$("term"),startB=$("start"),stopB=$("stop"),stateEl=$("state"),dot=$("dot"),
+      fill=$("fill"),bar=$("bar"),pct=$("pct"),doneEl=$("done"),totalEl=$("total"),
+      phone=$("phone"),count=$("count"),err=$("err");
+  var timer=null,typing=null,n=0,total=100,running=false,cur=null;
+
+  /* Matrix rain */
+  var cv=$("rain"),cx=cv.getContext("2d"),cols,drops,fs=16;
+  var chars="01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン<>/\\{}[]=+*#$%";
+  function size(){cv.width=innerWidth;cv.height=innerHeight;cols=Math.ceil(cv.width/fs);drops=[];for(var i=0;i<cols;i++)drops[i]=Math.random()*-60}
+  size();addEventListener("resize",size);
+  setInterval(function(){
+    cx.fillStyle="rgba(0,0,0,.09)";cx.fillRect(0,0,cv.width,cv.height);
+    cx.font=fs+"px monospace";
+    for(var i=0;i<cols;i++){
+      var c=chars.charAt(Math.floor(Math.random()*chars.length));
+      cx.fillStyle=Math.random()>.97?"#d6ffe6":"#00ff66";
+      cx.fillText(c,i*fs,drops[i]*fs);
+      if(drops[i]*fs>cv.height&&Math.random()>.975)drops[i]=0;
+      drops[i]+=.6;
+    }
+  },50);
+
+  /* Terminal helpers */
+  function removeCursor(){if(cur&&cur.parentNode)cur.parentNode.removeChild(cur);cur=null}
+  function log(text,cls,instant){
+    removeCursor();
+    var d=document.createElement("div");d.className="l "+(cls||"sys");term.appendChild(d);
+    cur=document.createElement("span");cur.className="cursor";
+    if(instant||text.length<1){d.textContent=text;d.appendChild(cur)}
+    else{
+      var i=0;clearInterval(typing);
+      typing=setInterval(function(){
+        i+=2;d.textContent=text.slice(0,i);d.appendChild(cur);
+        term.scrollTop=term.scrollHeight;
+        if(i>=text.length)clearInterval(typing);
+      },10);
+    }
+    while(term.children.length>200)term.removeChild(term.firstChild);
+    term.scrollTop=term.scrollHeight;
+  }
+  function pad(x,l){x=String(x);while(x.length<l)x="0"+x;return x}
+  function hex(l){var s="";for(var i=0;i<l;i++)s+=Math.floor(Math.random()*16).toString(16);return s.toUpperCase()}
+  function setState(t,c,dc){stateEl.textContent=t;stateEl.className=c;dot.className="dot "+(dc||"")}
+  function ui(){
+    var p=total?Math.floor(n/total*100):0;
+    pct.textContent=pad(p,2)+"%";fill.style.width=p+"%";doneEl.textContent=n;totalEl.textContent=total;
+  }
+
+  var noise=[
+    ["[CORE] Loading modules...","eng"],["[NETWORK] Establishing simulated connection...","net"],
+    ["[ENGINE] Processing request...","eng"],["[STATUS] Processing...","sys"],
+    ["[CRYPTO] Generating mock token 0x{h}","sys"],["[NETWORK] Simulated latency {ms}ms","net"],
+    ["[BUFFER] Allocating virtual block 0x{h}","eng"],["[SYSTEM] Heartbeat OK","sys"]
+  ];
+
+  function tick(){
+    if(!running)return;
+    n++;
+    var burst=Math.random();
+    if(burst>.55){
+      var m=noise[Math.floor(Math.random()*noise.length)];
+      log(m[0].replace("{h}",hex(8)).replace("{ms}",20+Math.floor(Math.random()*180)),m[1],true);
+    }
+    log("[QUEUE] Request "+pad(n,3)+"  ::  "+hex(6)+"  ::  SIMULATED","que",true);
+    ui();
+    if(n>=total){finish();return}
+    timer=setTimeout(tick,40+Math.random()*140);
+  }
+
+  function finish(){
+    running=false;clearTimeout(timer);
+    n=total;ui();bar.classList.remove("run");
+    setState("COMPLETED","st-done","done");
+    log("[SYSTEM] Operation completed","ok");
+    log("[DONE] "+total+" simulated requests processed. Nothing was sent.","ok");
+    startB.disabled=false;stopB.disabled=true;phone.disabled=count.disabled=false;
+  }
+
+  startB.addEventListener("click",function(){
+    err.textContent="";
+    var digits=phone.value.replace(/\D/g,""),c=parseInt(count.value,10);
+    if(digits.length<10){err.textContent="! ENTER A VALID NUMBER (10 DIGITS)";phone.focus();return}
+    if(!c||c<1||c>500){err.textContent="! REQUEST COUNT MUST BE 1 - 500";count.focus();return}
+    total=c;n=0;running=true;ui();
+    term.innerHTML="";cur=null;
+    startB.disabled=true;stopB.disabled=false;phone.disabled=count.disabled=true;
+    bar.classList.add("run");setState("RUNNING","st-run","run");
+    log("[SYSTEM] Initializing...","sys");
+    var seq=[["[CORE] Loading modules...","eng"],["[NETWORK] Establishing simulated connection...","net"],
+             ["[SYSTEM] Target locked: +98 "+digits.slice(0,3)+"*****"+digits.slice(-2)+" (display only)","wrn"],
+             ["[ENGINE] Demo mode active. No messages will be sent.","eng"]];
+    var i=0;
+    (function step(){
+      if(!running)return;
+      if(i<seq.length){log(seq[i][0],seq[i][1]);i++;timer=setTimeout(step,420)}
+      else tick();
+    })();
+  });
+
+  stopB.addEventListener("click",function(){
+    if(!running)return;
+    running=false;clearTimeout(timer);clearInterval(typing);
+    bar.classList.remove("run");
+    setState("STOPPED","st-stop","stop");
+    log("[SYSTEM] Operation stopped by user at "+n+" / "+total,"stp",true);
+    startB.disabled=false;stopB.disabled=true;phone.disabled=count.disabled=false;
+  });
+
+  phone.addEventListener("input",function(){phone.value=phone.value.replace(/\D/g,"")});
+  ui();
+})();
+</script>
+</body>
+</html>
